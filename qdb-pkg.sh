@@ -29,6 +29,32 @@ SYSCTL_CONF="/etc/sysctl.d/10-questdb.conf"  # Path to the sysctl configuration 
 DATA_DIR="/var/lib/questdb"  # Directory for data
 INSTALL_PREFIX="/opt/questdb"  # Installation directory
 
+# Add shell options for output directory, help, and version
+OUTPUT_DIR="."  # Default output directory
+
+while getopts "o:hv" opt; do
+  case $opt in
+    o)
+      OUTPUT_DIR="$OPTARG"
+      ;;
+    h)
+      echo "Usage: $0 [-o output_directory] [-h] [-v]"
+      echo "  -o output_directory  Specify the output directory for built packages (default: current directory)"
+      echo "  -h                   Show this help message"
+      echo "  -v                   Show script version"
+      exit 0
+      ;;
+    v)
+      echo "qdb-pkg.sh version 1.0.0"
+      exit 0
+      ;;
+    *)
+      echo "Invalid option. Use -h for help."
+      exit 1
+      ;;
+  esac
+done
+
 # Ensure necessary tools are installed
 # Check for curl (required for downloading files)
 command -v curl >/dev/null 2>&1 || {
@@ -170,6 +196,7 @@ fpm -s dir -t deb \
   --after-install "$SCRIPT_DIR/afterinstall.sh" \
   --before-remove "$SCRIPT_DIR/beforeremove.sh" \
   --after-remove "$SCRIPT_DIR/afterremove.sh" \
+  -p "$OUTPUT_DIR" \
   -C "$BUILD_DIR" .
 
 fpm -s dir -t rpm \
@@ -184,6 +211,7 @@ fpm -s dir -t rpm \
   --after-install "$SCRIPT_DIR/afterinstall.sh" \
   --before-remove "$SCRIPT_DIR/beforeremove.sh" \
   --after-remove "$SCRIPT_DIR/afterremove.sh" \
+  -p "$OUTPUT_DIR" \
   -C "$BUILD_DIR" .
 
 echo "Packages created successfully."
