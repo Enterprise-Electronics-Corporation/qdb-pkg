@@ -42,5 +42,8 @@ The following parameters are set via sysctl.d configuration to recommended value
 
 These changes are applied automatically during installation.
 
+## Disclaimer
+Use this script and the generated packages at your own risk. The authors and contributors of this project are not responsible for any damage to your system or data resulting from their use.
+
 ## License
 This project is licensed under the Apache-2.0 License.
