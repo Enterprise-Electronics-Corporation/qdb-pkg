@@ -9,8 +9,6 @@ PACKAGE_NAME="questdb"  # Name of the package
 DOWNLOAD_DIR="/tmp/questdb_download"  # Temporary directory for downloads
 BUILD_DIR="/tmp/questdb_build"  # Temporary directory for building the package
 SCRIPT_DIR="/tmp/questdb_scripts"  # Directory for installation scripts
-INSTALL_PREFIX="/opt/questdb"  # Installation directory for QuestDB
-DATA_DIR="/var/lib/questdb"  # Directory for QuestDB data
 
 # Systemd service configuration
 SYSTEMD_DIR="/etc/systemd/system"  # Directory for systemd service files
@@ -20,12 +18,16 @@ SYSTEMD_SERVICE="$SYSTEMD_DIR/questdb.service"  # Path to the QuestDB systemd se
 DEBDEPS="default-jre-headless"  # Dependencies for Debian-based systems
 RHELDEPS="java-latest-openjdk-headless"  # Dependencies for RHEL-based systems
 
-# System configuration values
+# System configuration
 FILE_MAX_VALUE=1048576  # Maximum number of open files
 MAX_MAP_COUNT_VALUE=1048576  # Maximum number of memory map areas
 
 # Sysctl.d configuration
 SYSCTL_CONF="/etc/sysctl.d/10-questdb.conf"  # Path to the sysctl configuration file
+
+# Quest DB configuration
+DATA_DIR="/var/lib/questdb"  # Directory for data
+INSTALL_PREFIX="/opt/questdb"  # Installation directory
 
 # Ensure necessary tools are installed
 # Check for curl (required for downloading files)
