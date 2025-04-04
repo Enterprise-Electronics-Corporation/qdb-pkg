@@ -9,6 +9,12 @@ a high-performance time-series database.
 - Configures system parameters for optimal performance.
 - Builds `.deb` and `.rpm` packages using `fpm`.
 
+## Motivation
+This project was created to address the need for a straightforward, non-containerized solution for deploying QuestDB. While Docker is a popular choice for many, we needed an alternative installation method for one of our commercial products.
+
+## To dos
+See [TODO.md](TODO.md).
+
 ## Prerequisites
 A Debian-based system to build is preferred. Limited testing was done on an RHEL-like distro and
 it didn't go far.
