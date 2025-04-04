@@ -1,56 +1,77 @@
 #!/bin/bash
 
 # Variables
-REPO="questdb/questdb"
-PACKAGE_NAME="questdb"
-DOWNLOAD_DIR="/tmp/questdb_download"
-BUILD_DIR="/tmp/questdb_build"
-SCRIPT_DIR="/tmp/questdb_scripts"
-INSTALL_PREFIX="/opt/questdb"
-DATA_DIR="/var/lib/questdb"
-SYSTEMD_DIR="/etc/systemd/system"
-SYSTEMD_SERVICE="$SYSTEMD_DIR/questdb.service"
-DEBDEPS="default-jre-headless"
-RHELDEPS="java-latest-openjdk-headless"
-FILE_MAX_VALUE=1048576
-MAX_MAP_COUNT_VALUE=1048576
+# Repository and package details
+REPO="questdb/questdb"  # GitHub repository for QuestDB
+PACKAGE_NAME="questdb"  # Name of the package
+
+# Directories for downloading, building, and installing QuestDB
+DOWNLOAD_DIR="/tmp/questdb_download"  # Temporary directory for downloads
+BUILD_DIR="/tmp/questdb_build"  # Temporary directory for building the package
+SCRIPT_DIR="/tmp/questdb_scripts"  # Directory for installation scripts
+INSTALL_PREFIX="/opt/questdb"  # Installation directory for QuestDB
+DATA_DIR="/var/lib/questdb"  # Directory for QuestDB data
+
+# Systemd service configuration
+SYSTEMD_DIR="/etc/systemd/system"  # Directory for systemd service files
+SYSTEMD_SERVICE="$SYSTEMD_DIR/questdb.service"  # Path to the QuestDB systemd service file
+
+# Package dependencies
+DEBDEPS="default-jre-headless"  # Dependencies for Debian-based systems
+RHELDEPS="java-latest-openjdk-headless"  # Dependencies for RHEL-based systems
+
+# System configuration values
+FILE_MAX_VALUE=1048576  # Maximum number of open files
+MAX_MAP_COUNT_VALUE=1048576  # Maximum number of memory map areas
+
+# Sysctl.d configuration
+SYSCTL_CONF="/etc/sysctl.d/10-questdb.conf"  # Path to the sysctl configuration file
 
 # Ensure necessary tools are installed
+# Check for curl (required for downloading files)
 command -v curl >/dev/null 2>&1 || {
   echo "curl is required but not installed."
   exit 1
 }
+
+# Check for jq (required for parsing JSON)
 command -v jq >/dev/null 2>&1 || {
   echo "jq is required but not installed."
   exit 1
 }
-# package binutils
+
+# Check for ar (required for creating Debian packages)
 command -v ar >/dev/null 2>&1 || {
   echo "ar is required but not installed."
   exit 1
 }
-# package rpm
+
+# Check for rpmbuild (required for creating RPM packages)
 command -v rpmbuild >/dev/null 2>&1 || {
   echo "rpmbuild is required but not installed."
   exit 1
 }
-# ruby gem
+
+# Check for fpm (required for creating packages)
 command -v fpm >/dev/null 2>&1 || {
   echo "fpm is required but not installed."
   exit 1
 }
 
 # Fetch the latest release information
+# Use GitHub API to get the latest release details
 RELEASE_INFO=$(curl -s "https://api.github.com/repos/$REPO/releases/latest")
-VERSION=$(echo "$RELEASE_INFO" | jq -r .tag_name)
-ASSET_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | contains("no-jre") and endswith("bin.tar.gz")).browser_download_url')
+VERSION=$(echo "$RELEASE_INFO" | jq -r .tag_name)  # Extract the version tag
+ASSET_URL=$(echo "$RELEASE_INFO" | jq -r '.assets[] | select(.name | contains("no-jre") and endswith("bin.tar.gz")).browser_download_url')  # Extract the download URL for the binary
 
+# Validate release information
 if [[ -z "$VERSION" || -z "$ASSET_URL" ]]; then
   echo "Failed to fetch the latest release information."
   exit 1
 fi
 
 # Prepare directories
+# Clean up and recreate necessary directories
 rm -rf "$DOWNLOAD_DIR" "$SCRIPT_DIR" "$BUILD_DIR"
 mkdir -p "$DOWNLOAD_DIR" "$SCRIPT_DIR" "$BUILD_DIR$INSTALL_PREFIX" "$BUILD_DIR$DATA_DIR" "$BUILD_DIR$SYSTEMD_DIR"
 
@@ -90,21 +111,13 @@ EOF
 
 # Create before-installation script
 cat <<EOF >"$SCRIPT_DIR/beforeinstall.sh"
-# Update system parameters
-echo "Updating system parameters..."
-if grep -q "^fs.file-max" /etc/sysctl.conf; then
-  sed -i "s/^fs.file-max.*/fs.file-max = $FILE_MAX_VALUE/" /etc/sysctl.conf
-else
-  echo "fs.file-max = $FILE_MAX_VALUE" >>/etc/sysctl.conf
+#!/bin/bash
+if [ ! -f $SYSCTL_CONF ]; then
+  echo "Creating sysctl.d configuration file..."
+  echo "fs.file-max = $FILE_MAX_VALUE" > $SYSCTL_CONF
+  echo "vm.max_map_count = $MAX_MAP_COUNT_VALUE" >> $SYSCTL_CONF
 fi
 
-if grep -q "^vm.max_map_count" /etc/sysctl.conf; then
-  sed -i "s/^vm.max_map_count.*/vm.max_map_count = $MAX_MAP_COUNT_VALUE/" /etc/sysctl.conf
-else
-  echo "vm.max_map_count = $MAX_MAP_COUNT_VALUE" >>/etc/sysctl.conf
-fi
-
-# Apply the changes
 sysctl -p
 EOF
 chmod +x "$SCRIPT_DIR/beforeinstall.sh"
@@ -134,6 +147,11 @@ cat <<EOF >"$SCRIPT_DIR/afterremove.sh"
 #!/bin/bash
 echo "Reloading systemd daemon..."
 systemctl daemon-reload
+
+if [ ! -f $SYSCTL_CONF ]; then
+  echo "Removing sysctl.d configuration file..."
+  rm -f $SYSCTL_CONF
+fi
 EOF
 chmod +x "$SCRIPT_DIR/afterremove.sh"
 
