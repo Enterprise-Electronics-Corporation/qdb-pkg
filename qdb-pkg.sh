@@ -45,7 +45,7 @@ while getopts "o:hv" opt; do
       exit 0
       ;;
     v)
-      echo "qdb-pkg.sh version 1.0.0"
+      echo "qdb-pkg.sh version 1.0.0-alpha"
       exit 0
       ;;
     *)
