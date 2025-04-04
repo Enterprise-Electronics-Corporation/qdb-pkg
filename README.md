@@ -1,6 +1,7 @@
 # QuestDB Package Builder
 
-This project provides a script to build Debian and RPM packages for [QuestDB](https://questdb.io/), a high-performance time-series database.
+This project provides a script to build Debian and RPM packages for [QuestDB](https://questdb.io/), 
+a high-performance time-series database.
 
 ## Features
 - Automatically fetches the latest QuestDB release.
@@ -9,6 +10,9 @@ This project provides a script to build Debian and RPM packages for [QuestDB](ht
 - Builds `.deb` and `.rpm` packages using `fpm`.
 
 ## Prerequisites
+A Debian-based system to build is preferred. Limited testing was done on an RHEL-like distro and
+it didn't go far.
+
 Ensure the following tools are installed on your system:
 - `curl`
 - `jq`
@@ -43,7 +47,8 @@ The following parameters are set via sysctl.d configuration to recommended value
 These changes are applied automatically during installation.
 
 ## Disclaimer
-Use this script and the generated packages at your own risk. The authors and contributors of this project are not responsible for any damage to your system or data resulting from their use.
+Use this script and the generated packages at your own risk. The authors and contributors of this
+project are not responsible for any damage to your system or data resulting from their use.
 
 ## License
 This project is licensed under the Apache-2.0 License.
